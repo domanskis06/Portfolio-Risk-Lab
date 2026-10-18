@@ -1,0 +1,46 @@
+# Virtual environment
+.venv/
+venv/
+env/
+# Accidental venv created in project root (do not commit)
+Lib/
+Scripts/
+Include/
+pyvenv.cfg
+
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local data dumps (keep schema in sql/)
+data/raw/*
+!data/raw/.gitkeep
+data/staging/*
+!data/staging/.gitkeep
+
+# Reports generated locally (keep figures/ folder)
+reports/figures/*
+!reports/figures/.gitkeep

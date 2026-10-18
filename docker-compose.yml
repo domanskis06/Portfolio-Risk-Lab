@@ -1,0 +1,27 @@
+# Local PostgreSQL for Quant Research & Market Risk Warehouse.
+# Usage (from project root, with Docker Desktop running):
+#   docker compose up -d
+#   docker compose ps
+#   docker compose down
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: qrwh-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qrwh
+      POSTGRES_PASSWORD: qrwh
+      POSTGRES_DB: quant_research_warehouse
+    ports:
+      - "5432:5432"
+    volumes:
+      - qrwh_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qrwh -d quant_research_warehouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  qrwh_pgdata:
