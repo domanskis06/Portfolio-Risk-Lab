@@ -13,8 +13,5 @@ import pandas as pd
 
 
 def simple_returns(prices: pd.Series) -> pd.Series:
-    """Daily simple returns; index aligned with prices (first day = NaN).
-
-    TODO: one-liner is fine — pct_change() OR prices / prices.shift(1) - 1
-    """
-    raise NotImplementedError("TODO Step 4: implement simple_returns()")
+    """Daily simple returns; index aligned with prices (first day = NaN)."""
+    return prices.pct_change()

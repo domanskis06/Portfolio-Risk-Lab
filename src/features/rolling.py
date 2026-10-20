@@ -18,6 +18,8 @@ Point-in-time:
 from __future__ import annotations
 
 import pandas as pd
+from math import sqrt
+
 
 # defaults matching sql/001_schema.sql column names
 VOL_WINDOW = 21
@@ -25,26 +27,19 @@ BETA_WINDOW = 63
 
 
 def rolling_vol(returns: pd.Series, window: int = VOL_WINDOW, annualize: bool = True) -> pd.Series:
-    """Trailing std of returns; if annualize, multiply by sqrt(252).
-
-    TODO:
-      s = returns.rolling(window).std()
-      return s * sqrt(252) if annualize else s
-    """
-    raise NotImplementedError("TODO Step 4: implement rolling_vol()")
-
+  """Trailing std of returns; if annualize, multiply by sqrt(252).
+  """
+  s = returns.rolling(window).std()
+  return s * sqrt(252) if annualize else s
 
 def rolling_beta(
     asset_returns: pd.Series,
     benchmark_returns: pd.Series,
     window: int = BETA_WINDOW,
 ) -> pd.Series:
-    """Trailing beta of asset vs benchmark; align indexes first.
-
-    TODO sketch:
-      a, b = asset_returns.align(benchmark_returns, join="inner")
-      cov = a.rolling(window).cov(b)
-      var = b.rolling(window).var()
-      return cov / var
-    """
-    raise NotImplementedError("TODO Step 4: implement rolling_beta()")
+  """Trailing beta of asset vs benchmark; align indexes first.
+  """
+  a, b = asset_returns.align(benchmark_returns, join="inner")
+  cov = a.rolling(window).cov(b)
+  var = b.rolling(window).var()
+  return cov / var
