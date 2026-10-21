@@ -13,21 +13,23 @@ from src.risk.covariance import (
     sample_covariance,
 )
 from src.risk.expected_shortfall import expected_shortfall, historical_es
-from src.risk.stress import (
-    apply_parallel_shock,
-    scale_cov_vol,
-    stressed_portfolio_loss_parallel,
-)
-from src.risk.var_historical import historical_var
-from src.risk.var_montecarlo import (
+from src.risk.historical import historical_var
+from src.risk.montecarlo import (
+    monte_carlo_es,
     monte_carlo_var,
     monte_carlo_var_es,
     simulate_multivariate_normal,
 )
-from src.risk.var_parametric import (
+from src.risk.parametric import (
+    parametric_es,
     parametric_es_gaussian,
     parametric_var,
     parametric_var_gaussian,
+)
+from src.risk.stress import (
+    apply_parallel_shock,
+    scale_cov_vol,
+    stressed_portfolio_loss_parallel,
 )
 
 __all__ = [
@@ -41,9 +43,11 @@ __all__ = [
     "parametric_var_gaussian",
     "parametric_es_gaussian",
     "parametric_var",
+    "parametric_es",
     "simulate_multivariate_normal",
     "monte_carlo_var_es",
     "monte_carlo_var",
+    "monte_carlo_es",
     "exception_indicator",
     "kupiec_pof_test",
     "rolling_historical_var",

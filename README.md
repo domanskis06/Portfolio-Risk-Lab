@@ -38,9 +38,12 @@ copy .env.example .env
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+python -m pip install -e .
 docker compose up -d
 python -m pytest -q
 ```
+
+`pip install -e .` registers the `src` package with the venv so IDE / Pylance resolve `from src...` imports (and scripts no longer *need* `sys.path` hacks, though they still work).
 
 If PowerShell blocks activation:
 

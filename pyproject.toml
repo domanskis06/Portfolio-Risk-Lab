@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio-risk-lab"
+version = "0.1.0"
+description = "Quant research & market risk warehouse"
+readme = "README.md"
+requires-python = ">=3.12"
+
+# Runtime deps stay in requirements.txt for now; this file makes `src` importable.
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
