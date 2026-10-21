@@ -1,9 +1,4 @@
-"""Step 2 tests: tidy OHLCV shape + idempotent upsert into prices_raw.
-
-These fail with NotImplementedError until you implement download/staging.
-After implementation, run with Docker up:
-    python -m pytest tests/test_etl_staging.py -q
-"""
+"""Tidy OHLCV shape and idempotent upsert into prices_raw (requires the Postgres container)."""
 
 from __future__ import annotations
 
@@ -28,7 +23,7 @@ REQUIRED_COLS = {
 
 
 def _fake_ohlcv() -> pd.DataFrame:
-    """Tiny synthetic panel — use this in upsert tests (no network)."""
+    """Tiny synthetic panel for the upsert test (no network)."""
     return pd.DataFrame(
         {
             "ticker": ["AAA", "AAA", "BBB"],
@@ -52,12 +47,23 @@ def test_download_ohlcv_tidy_columns():
     assert not df.duplicated(subset=["ticker", "dt"]).any()
 
 
-def test_upsert_prices_raw_idempotent():
+@pytest.fixture
+def clean_fake_rows():
+    """Remove the synthetic AAA/BBB rows before and after the test."""
+    stmt = text("DELETE FROM prices_raw WHERE ticker IN ('AAA', 'BBB')")
+    with get_engine().begin() as conn:
+        conn.execute(stmt)
+    yield
+    with get_engine().begin() as conn:
+        conn.execute(stmt)
+
+
+def test_upsert_prices_raw_idempotent(clean_fake_rows):
     from src.etl.staging import upsert_prices_raw
 
     df = _fake_ohlcv()
     n1 = upsert_prices_raw(df)
-    n2 = upsert_prices_raw(df)  # second run must not create duplicate PK rows
+    n2 = upsert_prices_raw(df)
 
     engine = get_engine()
     with engine.connect() as conn:
@@ -66,6 +72,5 @@ def test_upsert_prices_raw_idempotent():
         ).scalar_one()
 
     assert n1 >= 1
-    assert count == 3  # still exactly 3 unique (ticker, dt) rows
-    # n2 can be 0 or 3 depending on how you count "affected"; just no crash / no dupes
+    assert count == 3
     assert n2 >= 0

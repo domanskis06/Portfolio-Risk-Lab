@@ -27,7 +27,6 @@ def load_clean_prices() -> pd.DataFrame:
         FROM prices_clean
         ORDER BY instrument_id, dt
     """
-    # pd.read_sql wants an Engine (or Connection) — not a bare undefined `conn`
     return pd.read_sql(query, get_engine())
 
 
@@ -45,7 +44,7 @@ def compute_feature_frame(prices: pd.DataFrame, benchmark_id: int) -> pd.DataFra
     """Build in-memory features: instrument_id, dt, ret_1d, vol_21d, beta_63d."""
     prices = prices.sort_values(by=["instrument_id", "dt"]).copy()
 
-    # Index by dt so rolling_beta can align asset vs benchmark on dates
+    # Index by date so rolling_beta aligns asset and benchmark on dates
     bench = prices.loc[prices["instrument_id"] == benchmark_id].set_index("dt")["adj_close"]
     benchmark_ret = simple_returns(bench)
 
@@ -101,6 +100,7 @@ def upsert_features(features: pd.DataFrame) -> int:
 
 
 def build_and_store_features() -> int:
+    """Compute features for all instruments and upsert them; return affected rows."""
     prices = load_clean_prices()
     bid = load_benchmark_instrument_id()
     feat = compute_feature_frame(prices, bid)

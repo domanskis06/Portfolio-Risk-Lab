@@ -1,16 +1,12 @@
-"""Transform prices_raw → prices_clean with quality flags.
+"""Transform prices_raw into prices_clean.
 
-Why raw vs clean?
-  prices_raw  = whatever Yahoo sent (OHLCV, ticker text, may have gaps/junk)
-  prices_clean = research-ready series: one adj_close per (instrument_id, dt),
-                 sorted, with an explicit quality_flag documenting what we did.
+prices_raw keeps whatever Yahoo returned. prices_clean holds one adjusted close
+per (instrument_id, dt), sorted, with a quality_flag. Tickers are mapped to a
+stable integer instrument_id because symbols can be renamed or reused.
 
-Why instrument_id instead of ticker?
-  Tickers can be reused/renamed over decades. A stable integer FK is the warehouse
-  identity. ticker stays on instruments; prices_clean joins via instrument_id.
-
-Missing-value policy (MVP): drop rows with missing adj_close (no ffill).
-Outlier policy (MVP): flag days with |simple return| > RETURN_CAP.
+Missing values: rows without an adjusted close are dropped, nothing is forward filled.
+Outliers: days with an absolute simple return above RETURN_CAP are flagged
+``outlier_return`` but kept.
 """
 
 from __future__ import annotations
@@ -21,7 +17,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from src.db.connection import get_engine
 
-RETURN_CAP = 0.25  # |daily return| above this → outlier flag
+RETURN_CAP = 0.25
 BENCHMARK_TICKER = "SPY"
 _CHUNK_SIZE = 1000
 
@@ -45,7 +41,6 @@ def ensure_instruments(tickers: list[str], benchmark: str = BENCHMARK_TICKER) ->
             select(table.c.ticker, table.c.instrument_id).where(table.c.ticker.in_(tickers))
         ).fetchall()
 
-    # IMPORTANT: must come from DB (SERIAL ids), not from the ticker list alone
     return pd.DataFrame(rows, columns=["ticker", "instrument_id"])
 
 
@@ -69,7 +64,7 @@ def clean_price_panel(raw: pd.DataFrame, id_map: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(by=["instrument_id", "dt"])
     df = df.dropna(subset=["adj_close"])
 
-    # pct_change MUST be per instrument — otherwise day1 of BBB uses AAA's last price
+    # pct_change per instrument, otherwise the first day of one ticker uses the last price of another
     df["return"] = df.groupby("instrument_id", sort=False)["adj_close"].pct_change()
 
     df["quality_flag"] = "ok"

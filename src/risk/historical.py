@@ -2,10 +2,10 @@
 
 Ported from Market Risk Engine (market_risk.historical).
 
-API note (engine wins over old lab stubs):
+Conventions:
 - Input is **losses** L = -R_p, not raw returns.
 - ``alpha`` is the **confidence level** (default 0.95), i.e. the upper
-  quantile of the loss distribution — NOT a 0.05 tail probability.
+  quantile of the loss distribution, not a 0.05 tail probability.
 """
 
 from __future__ import annotations

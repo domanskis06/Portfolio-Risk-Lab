@@ -407,7 +407,7 @@ with tab_ml:
             "Top: out-of-sample probability of a high-vol regime. "
             "Bottom: trailing 21-day realized vol. "
             "Rose bands = periods that were truly high-vol. "
-            "The baseline is a hard 0/1 threshold rule, so its curve is a step function."
+            "The baseline score is the percentile of current volatility in the training window."
         )
 
         with st.expander("Run params / metrics JSON"):

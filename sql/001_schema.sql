@@ -1,8 +1,5 @@
--- MVP schema draft for Quant Research & Market Risk Warehouse.
--- Step 1: review PK/FK with the agent, then apply via scripts/init_db.py
--- Timestamps: TIMESTAMPTZ (store UTC).
-
--- TODO (Step 1): confirm types, add indexes if needed, keep names stable.
+-- Schema for the Quant Research & Market Risk Warehouse.
+-- Apply with scripts/init_db.py (idempotent). Timestamps are TIMESTAMPTZ, stored in UTC.
 
 CREATE TABLE IF NOT EXISTS instruments (
   instrument_id SERIAL PRIMARY KEY,
@@ -40,7 +37,6 @@ CREATE TABLE IF NOT EXISTS features (
   ret_1d DOUBLE PRECISION,
   vol_21d DOUBLE PRECISION,
   beta_63d DOUBLE PRECISION,
-  -- later: drawdown, rolling corr, etc.
   PRIMARY KEY (instrument_id, dt)
 );
 
@@ -60,7 +56,7 @@ CREATE TABLE IF NOT EXISTS portfolio_weights (
   PRIMARY KEY (portfolio_id, instrument_id, valid_from)
 );
 
--- One row = one risk experiment (method + params + results). Reproducibility.
+-- One row per risk experiment: method, parameters and results.
 CREATE TABLE IF NOT EXISTS risk_runs (
   run_id SERIAL PRIMARY KEY,
   portfolio_id INT REFERENCES portfolios(portfolio_id),

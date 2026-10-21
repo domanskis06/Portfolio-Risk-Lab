@@ -1,4 +1,4 @@
-"""Step 8 unit tests — labels + purged splits (no DB)."""
+"""Labels and purged splits (no DB)."""
 
 from __future__ import annotations
 

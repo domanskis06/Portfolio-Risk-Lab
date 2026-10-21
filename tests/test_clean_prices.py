@@ -1,4 +1,4 @@
-"""Step 3: cleaning logic on a tiny synthetic panel (no network)."""
+"""Cleaning logic on a tiny synthetic panel (no network)."""
 
 from __future__ import annotations
 

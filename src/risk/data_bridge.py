@@ -1,4 +1,4 @@
-"""Minimal yfinance returns helper for risk smoke scripts (not full ETL).
+"""Minimal yfinance returns helper for quick experiments (not part of the ETL).
 
 Ported from Market Risk Engine (market_risk.data).
 """

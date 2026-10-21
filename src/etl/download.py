@@ -1,15 +1,11 @@
-"""Download OHLCV for a small liquid universe (yfinance or CSV).
-
-TODO (Step 2 — you implement):
-- define UNIVERSE tickers + benchmark
-- download adjusted OHLCV
-- return a tidy DataFrame: ticker, dt, open, high, low, close, adj_close, volume
-"""
+"""Download daily OHLCV for a list of tickers from Yahoo Finance."""
 
 from __future__ import annotations
 
 import pandas as pd
 import yfinance as yf
+
+OUTPUT_COLUMNS = ["ticker", "dt", "open", "high", "low", "close", "adj_close", "volume"]
 
 
 def download_ohlcv(tickers: list[str], start: str, end: str | None = None) -> pd.DataFrame:
@@ -21,7 +17,8 @@ def download_ohlcv(tickers: list[str], start: str, end: str | None = None) -> pd
         end: Optional end date YYYY-MM-DD.
 
     Returns:
-        Tidy frame with one row per (ticker, dt).
+        Tidy frame with one row per (ticker, dt). Rows without an adjusted close
+        are dropped.
     """
     raw = yf.download(
         tickers=tickers,
@@ -31,28 +28,24 @@ def download_ohlcv(tickers: list[str], start: str, end: str | None = None) -> pd
         progress=False,
         group_by="column",
     )
-    # raw ma MultiIndex kolumn: ('Open','SPY'), ('Adj Close','SPY'), ...
-    # Zrób tidy: stack ticker albo pętla po tickerach.
 
+    rename = {
+        "Date": "dt",
+        "Open": "open",
+        "High": "high",
+        "Low": "low",
+        "Close": "close",
+        "Adj Close": "adj_close",
+        "Volume": "volume",
+    }
     frames = []
-    for t in tickers:
-        sub = raw.xs(t, axis=1, level=1)
-        sub = sub.reset_index()
-        sub = sub.rename(columns={
-            "Date": "dt",
-            "Open": "open",
-            "High": "high",
-            "Low": "low",
-            "Close": "close",
-            "Adj Close": "adj_close",
-            "Volume": "volume",
-        })
-        sub["ticker"] = t
-        frames.append(sub[["ticker", "dt", "open", "high", "low", "close", "adj_close", "volume"]])
-    
+    for ticker in tickers:
+        sub = raw.xs(ticker, axis=1, level=1).reset_index().rename(columns=rename)
+        sub["ticker"] = ticker
+        frames.append(sub[OUTPUT_COLUMNS])
+
     out = pd.concat(frames, ignore_index=True)
     out["dt"] = pd.to_datetime(out["dt"]).dt.date
     out = out.dropna(subset=["adj_close"])
-    # yfinance leaves MultiIndex level name "Price" on columns — drop it
     out.columns.name = None
     return out

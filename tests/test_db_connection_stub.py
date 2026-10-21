@@ -1,4 +1,4 @@
-"""Step 1: make this pass by implementing get_engine() and having Docker Postgres up."""
+"""Database connectivity (requires the Postgres container)."""
 
 from __future__ import annotations
 

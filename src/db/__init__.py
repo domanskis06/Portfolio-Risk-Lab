@@ -1,1 +1,1 @@
-"""Database connection and repository helpers."""
+"""Database connection helpers."""

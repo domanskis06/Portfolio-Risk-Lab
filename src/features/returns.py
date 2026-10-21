@@ -1,11 +1,4 @@
-"""Simple returns from adjusted close.
-
-Definition (say it out loud):
-    R_t = P_t / P_{t-1} - 1
-i.e. today's price divided by yesterday's price, minus one.
-
-Example: P_{t-1}=100, P_t=102 → R_t = 0.02 (plus two percent that day).
-"""
+"""Simple returns from adjusted close prices."""
 
 from __future__ import annotations
 
@@ -13,5 +6,5 @@ import pandas as pd
 
 
 def simple_returns(prices: pd.Series) -> pd.Series:
-    """Daily simple returns; index aligned with prices (first day = NaN)."""
+    """Daily simple returns R_t = P_t / P_{t-1} - 1; the first value is NaN."""
     return prices.pct_change()

@@ -2,7 +2,7 @@
 
 Core estimators ported from Market Risk Engine (market_risk.parametric):
 estimate_mean_cov, portfolio_mean_std.
-Thin lab wrappers: sample_covariance, portfolio_variance.
+Convenience wrappers: sample_covariance, portfolio_variance.
 """
 
 from __future__ import annotations

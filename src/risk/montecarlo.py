@@ -50,7 +50,7 @@ def monte_carlo_var(
     n_sims: int = 10_000,
     seed: int = 42,
 ) -> float:
-    """Thin lab wrapper: return only VaR from monte_carlo_var_es."""
+    """Return only the VaR from monte_carlo_var_es."""
     var_mc, _ = monte_carlo_var_es(
         mean, cov, weights, alpha=alpha, n_sims=n_sims, seed=seed
     )
@@ -64,6 +64,6 @@ def monte_carlo_es(
     n_sims: int = 10_000,
     seed: int = 42,
 ) -> float:
-    """Thin lab wrapper: return only ES from monte_carlo_var_es."""
+    """Return only the ES from monte_carlo_var_es."""
     _, es_mc = monte_carlo_var_es(mean, cov, weights, alpha=alpha, n_sims=n_sims, seed=seed)
     return es_mc

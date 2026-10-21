@@ -1,6 +1,6 @@
-"""Volatility regime classifier (Option A).
+"""Volatility regime classifier.
 
-Baseline: threshold on contemporaneous vol_21d (fit quantile on train only).
+Baseline: volatility persistence, the current vol_21d ranked against the training window.
 Model: LogisticRegression or HistGradientBoosting on point-in-time features
 (vol term-structure, vol momentum, |ret| — no future info).
 Persists aggregated metrics to model_runs and OOS rows to predictions.
@@ -26,8 +26,6 @@ from src.ml.evaluate import classification_metrics
 
 ModelKind = Literal["logreg", "hgb"]
 
-# Tuned on SPY walk-forward: richer features + logreg; horizon=42 lifts absolute AUC
-# (task is more persistent — baseline rises too). Default keeps h=21 unless overridden.
 FEATURE_COLS = [
     "vol_21d",
     "beta_63d",
@@ -129,15 +127,20 @@ def build_xy(
     return X.loc[mask], labels.loc[mask].astype(int)
 
 
-def _baseline_scores(vol_train: np.ndarray, vol_test: np.ndarray, q: float) -> np.ndarray:
-    """Score = 1 if test vol >= train-only quantile threshold, else 0."""
-    thresh = float(np.quantile(vol_train, q))
-    return (vol_test >= thresh).astype(float)
+def _baseline_scores(vol_train: np.ndarray, vol_test: np.ndarray) -> np.ndarray:
+    """Volatility persistence baseline.
+
+    Score is the percentile of the current 21 day vol within the training window,
+    so a higher score means the market is more volatile than usual. It ranks days
+    exactly like ``vol_21d`` itself and uses no information from the test period.
+    """
+    sorted_train = np.sort(vol_train)
+    return np.searchsorted(sorted_train, vol_test, side="right") / len(sorted_train)
 
 
 def _make_model(seed: int, model_kind: ModelKind = DEFAULT_MODEL):
     if model_kind == "hgb":
-        # Shallow HGB — deep trees overfit hard on this small walk-forward task.
+        # Shallow trees, deeper ones overfit this small walk-forward task.
         return HistGradientBoostingClassifier(
             max_depth=3,
             learning_rate=0.05,
@@ -253,8 +256,8 @@ def train_vol_regime_model(
     """Walk-forward train baseline + model; optionally write DB rows.
 
     Returns a summary dict with metrics and optional run_ids.
-    Tip: ``horizon=42, model_kind='hgb'`` often raises absolute AUC on SPY, but
-    compare lift vs baseline — the label task also gets easier.
+    Longer horizons raise absolute AUC for every model including the baseline,
+    so compare the lift over the baseline rather than the raw AUC.
     """
     iid, resolved_ticker = _resolve_instrument_id(ticker, instrument_id)
     gap = horizon if purge_gap is None else int(purge_gap)
@@ -274,6 +277,7 @@ def train_vol_regime_model(
 
     baseline_fold_metrics: list[dict] = []
     model_fold_metrics: list[dict] = []
+    fold_rows: list[dict] = []
     oos_dates: list[pd.Timestamp] = []
     oos_true: list[float] = []
     oos_pred: list[float] = []  # model P(high)
@@ -284,13 +288,26 @@ def train_vol_regime_model(
         if len(np.unique(y_tr)) < 2:
             continue
 
-        base_score = _baseline_scores(vol_np[tr], vol_np[te], high_vol_quantile)
-        baseline_fold_metrics.append(classification_metrics(y_te, base_score))
+        base_score = _baseline_scores(vol_np[tr], vol_np[te])
+        base_metrics = classification_metrics(y_te, base_score)
+        baseline_fold_metrics.append(base_metrics)
 
         clf = _make_model(seed, model_kind=model_kind)
         clf.fit(X_np[tr], y_tr)
         proba = clf.predict_proba(X_np[te])[:, 1]
-        model_fold_metrics.append(classification_metrics(y_te, proba))
+        model_metrics = classification_metrics(y_te, proba)
+        model_fold_metrics.append(model_metrics)
+        fold_rows.append(
+            {
+                "fold": fold_i + 1,
+                "test_start": str(X.index[te[0]].date()),
+                "test_end": str(X.index[te[-1]].date()),
+                "n_train": int(len(tr)),
+                "n_test": int(len(te)),
+                "baseline_auc": base_metrics["roc_auc"],
+                "model_auc": model_metrics["roc_auc"],
+            }
+        )
 
         oos_dates.extend(list(X.index[te]))
         oos_true.extend(y_te.astype(float).tolist())
@@ -316,6 +333,7 @@ def train_vol_regime_model(
             "average_precision": _mean_metric(model_fold_metrics, "average_precision"),
         },
         "auc_lift": (mod_auc - base_auc) if (mod_auc is not None and base_auc is not None) else None,
+        "folds": fold_rows,
         "run_ids": {},
     }
 
@@ -344,7 +362,7 @@ def train_vol_regime_model(
         base_id = insert_model_run(
             "vol_regime_baseline",
             summary["baseline"],
-            {**params, "kind": "vol_quantile_threshold"},
+            {**params, "kind": "vol_persistence"},
             train_start=train_start,
             train_end=train_end,
             test_start=test_start,

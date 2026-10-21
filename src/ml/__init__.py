@@ -1,1 +1,1 @@
-"""ML module: volatility regime classification (Option A)."""
+"""ML module: volatility regime classification."""

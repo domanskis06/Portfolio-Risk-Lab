@@ -25,7 +25,7 @@ def portfolio_losses(returns: np.ndarray, weights: np.ndarray) -> np.ndarray:
 
 
 def portfolio_return(weights: np.ndarray, returns_row: np.ndarray) -> float:
-    """Thin wrapper: one-day portfolio return (lab stub name)."""
+    """One-day portfolio return for a single row of asset returns."""
     return float(portfolio_returns(np.atleast_2d(returns_row), weights)[0])
 
 

@@ -1,6 +1,6 @@
 """Weight helpers. validate_weights ported from Market Risk Engine.
 
-equal_weights remains a warehouse stub (not in the engine source).
+equal_weights is specific to this project.
 """
 
 from __future__ import annotations

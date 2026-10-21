@@ -2,11 +2,10 @@
 .venv/
 venv/
 env/
-# Accidental venv created in project root (do not commit)
-Lib/
-Scripts/
-Include/
-pyvenv.cfg
+# Accidental venv files in the project root
+/Lib/
+/Include/
+/pyvenv.cfg
 
 # Environment / secrets
 .env
@@ -44,3 +43,6 @@ data/staging/*
 # Reports generated locally (keep figures/ folder)
 reports/figures/*
 !reports/figures/.gitkeep
+
+# Local planning notes
+quant-research-warehouse-AGENT-PROMPT.md

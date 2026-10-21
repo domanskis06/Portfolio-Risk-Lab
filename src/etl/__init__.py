@@ -1,1 +1,1 @@
-"""ETL: download → staging → clean."""
+"""ETL: download, staging, cleaning."""

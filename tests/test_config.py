@@ -1,4 +1,4 @@
-"""Smoke tests for project config (should pass after venv + pip install)."""
+"""Smoke tests for project config."""
 
 from __future__ import annotations
 

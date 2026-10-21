@@ -1,4 +1,4 @@
-"""Seed portfolios + weights into Postgres (Step 5)."""
+"""Seed the default portfolios and their weights into Postgres."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from sqlalchemy import bindparam, text
 from src.db.connection import get_engine
 from src.portfolio.weights import equal_weights, validate_weights
 
-VALID_FROM = "2019-01-01"  # align with ETL START
+VALID_FROM = "2019-01-01"
 
-# Explicit tilt over the default ETL universe (must sum to 1).
+# Explicit tilt over the default universe, sums to 1.
 _MANUAL_TILT = {
     "SPY": 0.15,
     "QQQ": 0.20,
@@ -125,7 +125,7 @@ def seed_default_portfolios(tickers: list[str]) -> dict[str, int]:
 
     pid2 = create_or_get_portfolio(
         "manual_tilt",
-        "Manual tilt: overweight QQQ, underweight TLT/EEM",
+        "Manual tilt: overweight QQQ, underweight TLT and EEM",
     )
     upsert_weights(pid2, _manual_tilt_weights(tickers), ticker_ids)
 

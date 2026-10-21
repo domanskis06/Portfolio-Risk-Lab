@@ -1,4 +1,4 @@
-"""Step 4 unit tests — pure math on tiny series (no DB / no network)."""
+"""Feature math on tiny series (no DB, no network)."""
 
 from __future__ import annotations
 
