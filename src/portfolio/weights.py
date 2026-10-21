@@ -25,4 +25,4 @@ def validate_weights(weights: np.ndarray, tol: float = 1e-8) -> np.ndarray:
 
 def equal_weights(tickers: list[str]) -> pd.Series:
     """Return Series indexed by ticker with equal weights summing to 1."""
-    raise NotImplementedError("TODO warehouse Step 5: implement equal_weights()")
+    return pd.Series(1/len(tickers), index = tickers)
